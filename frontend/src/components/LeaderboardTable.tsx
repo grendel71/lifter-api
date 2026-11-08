@@ -16,7 +16,7 @@ export function LeaderboardTable({
   onRefresh,
 }: LeaderboardTableProps) {
   return (
-    <section className="card leaderboard-card">
+    <section id="leaderboard" className="card leaderboard-card">
       <div className="card-header">
         <div>
           <h2>Top 10 Lifters</h2>
@@ -55,7 +55,9 @@ export function LeaderboardTable({
                 const isCurrentUser = currentUserId === entry.id;
                 return (
                   <tr key={entry.id} className={isCurrentUser ? "row-current-user" : undefined}>
-                    <td className="rank-cell">#{idx + 1}</td>
+                    <td className={`rank-cell${idx < 3 ? ` rank-${idx + 1}` : ""}`}>
+                      #{idx + 1}
+                    </td>
                     <td>
                       <span className="lifter-name">{entry.name}</span>
                       {isCurrentUser && <span className="badge-you">You</span>}

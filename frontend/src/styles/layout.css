@@ -166,3 +166,27 @@
     max-width: none;
   }
 }
+
+/* ---------- Header: active link, Log In / Profile button ---------- */
+.site-nav a.active {
+  color: var(--nav-text);
+}
+
+.site-nav a.site-nav-cta {
+  margin-left: 0.5rem;
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.site-nav a.site-nav-cta:hover {
+  background: var(--accent-dark);
+  color: #ffffff;
+}
+
+/* ---------- Login / Profile page title ---------- */
+.page-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}

@@ -42,6 +42,13 @@ describe("SiteHeader", () => {
     renderHeader(false);
     expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
+
+  it("renders a profile icon inside the account link", () => {
+    renderHeader(false);
+    const link = screen.getByRole("link", { name: "Log In" });
+    expect(link.querySelector("svg")).not.toBeNull();
+    expect(link.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+  });
 });
 
 describe("PageHero", () => {

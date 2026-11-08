@@ -9,6 +9,10 @@ import { AuthCard } from "./components/AuthCard";
 import { LeaderboardTable } from "./components/LeaderboardTable";
 import { ProfileEditor } from "./components/ProfileEditor";
 import { UserManagementPanel } from "./components/UserManagementPanel";
+import { AboutSection } from "./components/AboutSection";
+import { PageHero } from "./components/PageHero";
+import { SiteFooter } from "./components/SiteFooter";
+import { SiteHeader } from "./components/SiteHeader";
 import type { LeaderboardEntry } from "./types";
 
 export default function App() {
@@ -58,15 +62,11 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div className="container">
-          <h1>Powerlifting Leaderboard</h1>
-          <p>Top 10 lifters by Squat, Bench, and Deadlift total</p>
-        </div>
-      </header>
+    <div className="app-shell" id="top">
+      <SiteHeader />
+      <PageHero />
 
-      <main className="container main-grid">
+      <main className="container page-stack">
         <LeaderboardTable
           entries={entries}
           currentUserId={currentUserId}
@@ -75,7 +75,7 @@ export default function App() {
           onRefresh={() => void loadLeaderboard()}
         />
 
-        <aside className="side-panel">
+        <div id="account" className="account-stack">
           {token && currentUserId ? (
             <>
               <ProfileEditor
@@ -98,8 +98,12 @@ export default function App() {
               onUserCreated={() => void loadLeaderboard()}
             />
           )}
-        </aside>
+        </div>
+
+        <AboutSection />
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

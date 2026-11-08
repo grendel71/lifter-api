@@ -1,1 +1,168 @@
-/* filled in later tasks */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--nav-bg);
+  border-bottom: 1px solid var(--nav-bg-2);
+}
+
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 3.5rem;
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--nav-text);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
+}
+
+.site-brand:hover {
+  text-decoration: none;
+}
+
+.site-brand-mark {
+  color: var(--accent);
+}
+
+.site-nav {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.site-nav a {
+  color: var(--nav-muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.site-nav a:hover {
+  color: var(--nav-text);
+  background: var(--nav-bg-2);
+  text-decoration: none;
+}
+
+/* ---------- Hero ---------- */
+.page-hero {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 2.5rem 0 2rem;
+}
+
+.page-hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.page-hero p {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+/* ---------- Page body ---------- */
+.page-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.account-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.account-stack > .auth-card,
+.account-stack > .profile-card {
+  width: 100%;
+  max-width: 560px;
+}
+
+/* ---------- About ---------- */
+.about-section h2 {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
+}
+
+.about-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 0;
+}
+
+.about-list > div {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+}
+
+.about-list dt {
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+
+.about-list dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--nav-bg);
+  color: var(--nav-muted);
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+}
+
+.site-footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.site-footer a {
+  color: var(--nav-text);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .page-hero h1 {
+    font-size: 1.6rem;
+  }
+
+  .about-list {
+    grid-template-columns: 1fr;
+  }
+
+  .account-stack > .auth-card,
+  .account-stack > .profile-card {
+    max-width: none;
+  }
+}

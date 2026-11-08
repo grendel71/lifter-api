@@ -4,7 +4,7 @@
   --muted: #7a7a7a;
   --border: #dbdbdb;
   --surface: #ffffff;
-  --page-bg: #008aff;
+  --page-bg: #0a0a0a;
   --header-height: 3.5rem;
   --row-hover: #fafafa;
   --nav-bg: #121212;
@@ -70,11 +70,16 @@ h3 {
   padding: 0 1.25rem;
 }
 
-/* Image and fill colour live on <html>, like the reference page. */
+/* Image and dark overlay cover the whole viewport and stay fixed. */
 html {
   background-color: var(--page-bg);
-  background-image: url("../assets/jordanpetersjp.png");
+  background-image: linear-gradient(
+      rgba(10, 10, 10, 0.6),
+      rgba(10, 10, 10, 0.6)
+    ),
+    url("../assets/jordanpetersjp.png");
   background-repeat: no-repeat;
-  background-position: center var(--header-height);
-  background-size: clamp(640px, 100%, 1280px) auto;
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
 }

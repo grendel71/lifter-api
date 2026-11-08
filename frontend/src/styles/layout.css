@@ -105,6 +105,8 @@
 .about-section h2 {
   margin: 0 0 1rem;
   font-size: 1.4rem;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(10, 10, 10, 0.45);
 }
 
 .about-list {
@@ -195,4 +197,6 @@
   margin: 0;
   font-size: 1.6rem;
   font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(10, 10, 10, 0.45);
 }

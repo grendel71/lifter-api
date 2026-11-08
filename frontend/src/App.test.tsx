@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import App from "./App";
 
 function makeFakeJwt(sub: string, role?: string): string {
@@ -17,13 +18,30 @@ function makeFakeJwt(sub: string, role?: string): string {
   return `${header}.${body}.sig`;
 }
 
+function renderApp(path = "/") {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <App />
+    </MemoryRouter>
+  );
+}
+
+type TestUser = ReturnType<typeof userEvent.setup>;
+
+async function loginViaHeader(user: TestUser, username: string) {
+  await user.click(screen.getByRole("link", { name: "Log In" }));
+  await user.type(screen.getByLabelText(/username/i), username);
+  await user.type(screen.getByLabelText(/password/i), "secret123");
+  await user.click(screen.getByRole("button", { name: /sign in/i }));
+}
+
 describe("App integration", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
   });
 
-  it("renders Top 10 leaderboard and allows user login and updating fields", async () => {
+  it("renders Top 10 leaderboard and allows login via the header and updating lifts on the profile page", async () => {
     const userId = "123e4567-e89b-12d3-a456-426614174000";
     let userPerf = {
       lifter_id: userId,
@@ -81,18 +99,16 @@ describe("App integration", () => {
     });
 
     const user = userEvent.setup();
-    render(<App />);
+    renderApp("/");
 
     // Leaderboard loads Alex with total 580
     expect(await screen.findByText("Alex")).toBeInTheDocument();
     expect(screen.getByText("580")).toBeInTheDocument();
 
-    // Log in via Login form
-    await user.type(screen.getByLabelText(/username/i), "alex99");
-    await user.type(screen.getByLabelText(/password/i), "secret123");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
+    // Log in through the header button -> login page -> profile page
+    await loginViaHeader(user, "alex99");
 
-    // Update form appears with pre-filled values
+    // Profile page shows the form with pre-filled values
     const nameInput = await screen.findByLabelText(/display name/i);
     expect(nameInput).toHaveValue("Alex");
 
@@ -104,8 +120,10 @@ describe("App integration", () => {
     await user.type(nameInput, "Alex Pro");
 
     await user.click(screen.getByRole("button", { name: /save changes/i }));
+    expect(await screen.findByText("Profile and lifts updated!")).toBeInTheDocument();
 
-    // Leaderboard updates with new name and total (220 + 140 + 240 = 600)
+    // Back on the home page the leaderboard shows the new name and total (220 + 140 + 240 = 600)
+    await user.click(screen.getByRole("link", { name: "Rankings" }));
     await waitFor(() => {
       expect(screen.getByText("Alex Pro")).toBeInTheDocument();
       expect(screen.getByText("600")).toBeInTheDocument();
@@ -163,18 +181,15 @@ describe("Admin visibility", () => {
     });
   }
 
-  it("shows the User Management panel after an Admin-role login", async () => {
+  it("shows the User Management panel on the profile page after an Admin-role login", async () => {
     const userId = "223e4567-e89b-12d3-a456-426614174000";
     mockLoginAndUsers("Admin", userId, "Admin User");
 
     const user = userEvent.setup();
-    render(<App />);
+    renderApp("/");
 
     await screen.findByText("Admin User");
-
-    await user.type(screen.getByLabelText(/username/i), "adminuser");
-    await user.type(screen.getByLabelText(/password/i), "secret123");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
+    await loginViaHeader(user, "adminuser");
 
     expect(await screen.findByText("User Management")).toBeInTheDocument();
   });
@@ -184,13 +199,10 @@ describe("Admin visibility", () => {
     mockLoginAndUsers(undefined, userId, "Regular User");
 
     const user = userEvent.setup();
-    render(<App />);
+    renderApp("/");
 
     await screen.findByText("Regular User");
-
-    await user.type(screen.getByLabelText(/username/i), "regularuser");
-    await user.type(screen.getByLabelText(/password/i), "secret123");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
+    await loginViaHeader(user, "regularuser");
 
     await screen.findByLabelText(/display name/i);
     expect(screen.queryByText("User Management")).not.toBeInTheDocument();

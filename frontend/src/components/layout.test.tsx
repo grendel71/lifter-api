@@ -1,31 +1,45 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { SiteHeader } from "./SiteHeader";
 import { PageHero } from "./PageHero";
 import { AboutSection } from "./AboutSection";
 import { SiteFooter } from "./SiteFooter";
 
+function renderHeader(loggedIn: boolean) {
+  return render(
+    <MemoryRouter>
+      <SiteHeader loggedIn={loggedIn} />
+    </MemoryRouter>
+  );
+}
+
 describe("SiteHeader", () => {
-  it("renders brand and anchor links to page sections", () => {
-    render(<SiteHeader />);
+  it("renders the primary nav with Rankings and About links", () => {
+    renderHeader(false);
 
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Rankings" })).toHaveAttribute(
-      "href",
-      "#leaderboard"
-    );
-    expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute(
-      "href",
-      "#account"
-    );
-    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute(
-      "href",
-      "#about"
-    );
+    expect(screen.getByRole("link", { name: "Rankings" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/#about");
+    expect(screen.queryByRole("link", { name: "Account" })).not.toBeInTheDocument();
+  });
+
+  it("shows a Log In link to /login when logged out", () => {
+    renderHeader(false);
+
+    expect(screen.getByRole("link", { name: "Log In" })).toHaveAttribute("href", "/login");
+    expect(screen.queryByRole("link", { name: "Profile" })).not.toBeInTheDocument();
+  });
+
+  it("shows a Profile link to /profile when logged in", () => {
+    renderHeader(true);
+
+    expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute("href", "/profile");
+    expect(screen.queryByRole("link", { name: "Log In" })).not.toBeInTheDocument();
   });
 
   it("renders no buttons (keeps sign-in button unique on the page)", () => {
-    render(<SiteHeader />);
+    renderHeader(false);
     expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
 });

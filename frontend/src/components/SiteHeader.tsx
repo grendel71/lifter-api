@@ -1,17 +1,33 @@
-export function SiteHeader() {
+import { Link, NavLink } from "react-router-dom";
+
+interface SiteHeaderProps {
+  loggedIn: boolean;
+}
+
+export function SiteHeader({ loggedIn }: SiteHeaderProps) {
   return (
     <header className="site-header">
       <div className="container site-header-inner">
-        <a className="site-brand" href="#top">
+        <Link className="site-brand" to="/">
           <span className="site-brand-mark" aria-hidden="true">
             ▲
           </span>
           <span>Leaderboard</span>
-        </a>
+        </Link>
         <nav className="site-nav" aria-label="Primary">
-          <a href="#leaderboard">Rankings</a>
-          <a href="#account">Account</a>
-          <a href="#about">About</a>
+          <NavLink to="/" end>
+            Rankings
+          </NavLink>
+          <Link to="/#about">About</Link>
+          {loggedIn ? (
+            <Link className="site-nav-cta" to="/profile">
+              Profile
+            </Link>
+          ) : (
+            <Link className="site-nav-cta" to="/login">
+              Log In
+            </Link>
+          )}
         </nav>
       </div>
     </header>

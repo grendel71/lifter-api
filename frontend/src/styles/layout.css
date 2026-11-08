@@ -17,7 +17,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 3.5rem;
+  height: var(--header-height);
 }
 
 .site-brand {
@@ -59,22 +59,24 @@
 
 /* ---------- Hero ---------- */
 .page-hero {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 2.5rem 0 2rem;
+  min-height: 22rem;
+  padding: 3rem 0 2rem;
 }
 
 .page-hero h1 {
   margin: 0 0 0.5rem;
   font-size: 2rem;
   font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(10, 10, 10, 0.45);
 }
 
 .page-hero p {
   margin: 0;
   max-width: 40rem;
-  color: var(--text);
+  color: #ffffff;
   font-size: 1.05rem;
+  text-shadow: 0 1px 4px rgba(10, 10, 10, 0.45);
 }
 
 /* ---------- Page body ---------- */
@@ -153,6 +155,10 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 720px) {
+  .page-hero {
+    min-height: 14rem;
+  }
+
   .page-hero h1 {
     font-size: 1.6rem;
   }

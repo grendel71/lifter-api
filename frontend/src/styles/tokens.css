@@ -4,7 +4,8 @@
   --muted: #7a7a7a;
   --border: #dbdbdb;
   --surface: #ffffff;
-  --page-bg: #f5f5f5;
+  --page-bg: #008aff;
+  --header-height: 3.5rem;
   --row-hover: #fafafa;
   --nav-bg: #121212;
   --nav-bg-2: #242424;
@@ -42,7 +43,7 @@ body {
   font-size: 1rem;
   line-height: 1.5;
   color: var(--text);
-  background: var(--page-bg);
+  background: transparent;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -67,4 +68,13 @@ h3 {
   max-width: 960px;
   margin: 0 auto;
   padding: 0 1.25rem;
+}
+
+/* Image and fill colour live on <html>, like the reference page. */
+html {
+  background-color: var(--page-bg);
+  background-image: url("../assets/jordanpetersjp.png");
+  background-repeat: no-repeat;
+  background-position: center var(--header-height);
+  background-size: clamp(640px, 100%, 1280px) auto;
 }

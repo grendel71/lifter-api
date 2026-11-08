@@ -248,3 +248,25 @@ body {
   color: #64748b;
   padding: 2rem 0;
 }
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.leaderboard-table input[type="text"],
+.leaderboard-table input[type="number"] {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+}

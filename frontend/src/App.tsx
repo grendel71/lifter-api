@@ -2,11 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import {
   TOKEN_STORAGE_KEY,
   fetchTop10Leaderboard,
+  parseJwtRole,
   parseJwtUserId,
 } from "./api";
 import { AuthCard } from "./components/AuthCard";
 import { LeaderboardTable } from "./components/LeaderboardTable";
 import { ProfileEditor } from "./components/ProfileEditor";
+import { UserManagementPanel } from "./components/UserManagementPanel";
 import type { LeaderboardEntry } from "./types";
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
   });
 
   const currentUserId = token ? parseJwtUserId(token) : null;
+  const currentUserRole = token ? parseJwtRole(token) : null;
+  const isAdmin = currentUserRole === "Admin";
 
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,12 +77,21 @@ export default function App() {
 
         <aside className="side-panel">
           {token && currentUserId ? (
-            <ProfileEditor
-              userId={currentUserId}
-              token={token}
-              onUpdated={() => void loadLeaderboard()}
-              onLogout={handleLogout}
-            />
+            <>
+              <ProfileEditor
+                userId={currentUserId}
+                token={token}
+                onUpdated={() => void loadLeaderboard()}
+                onLogout={handleLogout}
+              />
+              {isAdmin && (
+                <UserManagementPanel
+                  token={token}
+                  onChanged={() => void loadLeaderboard()}
+                  onLogout={handleLogout}
+                />
+              )}
+            </>
           ) : (
             <AuthCard
               onLoginSuccess={handleLoginSuccess}

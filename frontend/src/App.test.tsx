@@ -3,10 +3,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
 
-function makeFakeJwt(sub: string): string {
+function makeFakeJwt(sub: string, role?: string): string {
   const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
   const exp = Math.floor(Date.now() / 1000) + 3600;
-  const body = btoa(JSON.stringify({ sub, exp }))
+  const payload: Record<string, unknown> = { sub, exp };
+  if (role) {
+    payload.role = role;
+  }
+  const body = btoa(JSON.stringify(payload))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
@@ -106,5 +110,89 @@ describe("App integration", () => {
       expect(screen.getByText("Alex Pro")).toBeInTheDocument();
       expect(screen.getByText("600")).toBeInTheDocument();
     });
+  });
+});
+
+describe("Admin visibility", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  function mockLoginAndUsers(
+    loginRole: string | undefined,
+    userId: string,
+    userName: string
+  ) {
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+
+      if (url === "/api/v1/users" && method === "GET") {
+        return new Response(JSON.stringify([{ id: userId, name: userName }]), {
+          status: 200,
+        });
+      }
+      if (url === `/api/v1/users/${userId}` && method === "GET") {
+        return new Response(JSON.stringify({ id: userId, name: userName }), {
+          status: 200,
+        });
+      }
+      if (url === `/api/v1/users/${userId}/performance` && method === "GET") {
+        return new Response(
+          JSON.stringify({
+            lifter_id: userId,
+            squat: 100,
+            bench: 100,
+            deadlift: 100,
+            total: 300,
+          }),
+          { status: 200 }
+        );
+      }
+      if (url === "/api/v1/login" && method === "POST") {
+        return new Response(
+          JSON.stringify({
+            access_token: makeFakeJwt(userId, loginRole),
+            token_type: "bearer",
+          }),
+          { status: 200 }
+        );
+      }
+      return new Response("Not found", { status: 404 });
+    });
+  }
+
+  it("shows the User Management panel after an Admin-role login", async () => {
+    const userId = "223e4567-e89b-12d3-a456-426614174000";
+    mockLoginAndUsers("Admin", userId, "Admin User");
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByText("Admin User");
+
+    await user.type(screen.getByLabelText(/username/i), "adminuser");
+    await user.type(screen.getByLabelText(/password/i), "secret123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    expect(await screen.findByText("User Management")).toBeInTheDocument();
+  });
+
+  it("does not show the User Management panel after a normal-role login", async () => {
+    const userId = "323e4567-e89b-12d3-a456-426614174000";
+    mockLoginAndUsers(undefined, userId, "Regular User");
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByText("Regular User");
+
+    await user.type(screen.getByLabelText(/username/i), "regularuser");
+    await user.type(screen.getByLabelText(/password/i), "secret123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await screen.findByLabelText(/display name/i);
+    expect(screen.queryByText("User Management")).not.toBeInTheDocument();
   });
 });

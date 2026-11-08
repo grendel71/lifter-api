@@ -10,21 +10,40 @@ import type {
 
 export const TOKEN_STORAGE_KEY = "leaderboard_jwt";
 
-export function parseJwtUserId(token: string): string | null {
+interface DecodedJwt {
+  sub?: string;
+  exp?: number;
+  role?: string;
+}
+
+function decodeJwtPayload(token: string): DecodedJwt | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
     const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
-    const payload = JSON.parse(atob(padded)) as { sub?: string; exp?: number };
-    if (!payload.sub || typeof payload.sub !== "string") return null;
+    const payload = JSON.parse(atob(padded)) as DecodedJwt;
     if (typeof payload.exp === "number" && payload.exp * 1000 <= Date.now()) {
       return null;
     }
-    return payload.sub;
+    return payload;
   } catch {
     return null;
   }
+}
+
+export function parseJwtUserId(token: string): string | null {
+  const payload = decodeJwtPayload(token);
+  if (!payload || !payload.sub || typeof payload.sub !== "string") return null;
+  return payload.sub;
+}
+
+export function parseJwtRole(token: string): string | null {
+  const payload = decodeJwtPayload(token);
+  if (!payload || typeof payload.role !== "string" || payload.role.length === 0) {
+    return null;
+  }
+  return payload.role;
 }
 
 export function buildTop10(entries: LeaderboardEntry[]): LeaderboardEntry[] {
@@ -62,14 +81,14 @@ export async function fetchUserPerformance(userId: string): Promise<LifterRespon
   return (await res.json()) as LifterResponse;
 }
 
-export async function fetchTop10Leaderboard(): Promise<LeaderboardEntry[]> {
+export async function fetchUsersWithPerformance(): Promise<LeaderboardEntry[]> {
   const usersRes = await fetch("/api/v1/users");
   if (!usersRes.ok) {
     throw new Error(await parseErrorDetail(usersRes, "Failed to fetch users"));
   }
   const users = (await usersRes.json()) as UserPublic[];
 
-  const entries = await Promise.all(
+  return Promise.all(
     users.map(async (user): Promise<LeaderboardEntry> => {
       try {
         const perf = await fetchUserPerformance(user.id);
@@ -93,7 +112,10 @@ export async function fetchTop10Leaderboard(): Promise<LeaderboardEntry[]> {
       }
     })
   );
+}
 
+export async function fetchTop10Leaderboard(): Promise<LeaderboardEntry[]> {
+  const entries = await fetchUsersWithPerformance();
   return buildTop10(entries);
 }
 
@@ -146,5 +168,20 @@ export async function updateUserPerformance(
   }
   if (!res.ok) {
     throw new Error(await parseErrorDetail(res, "Failed to update performance"));
+  }
+}
+
+export async function deleteUser(userId: string, token: string): Promise<void> {
+  const res = await fetch(`/api/v1/users/${userId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (res.status === 401) {
+    throw new UnauthorizedError(await parseErrorDetail(res, "Invalid or expired token"));
+  }
+  if (!res.ok) {
+    throw new Error(await parseErrorDetail(res, "Failed to delete user"));
   }
 }

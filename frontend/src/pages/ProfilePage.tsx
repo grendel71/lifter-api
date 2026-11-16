@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { parseJwtRole, parseJwtUserId } from "../api";
 import { ProfileEditor } from "../components/ProfileEditor";
+import { InviteLinkPanel } from "../components/InviteLinkPanel";
 import { UserManagementPanel } from "../components/UserManagementPanel";
 
 interface ProfilePageProps {
@@ -39,6 +40,7 @@ export function ProfilePage({ token, onChanged, onLogout }: ProfilePageProps) {
           onUpdated={onChanged}
           onLogout={handleLogout}
         />
+        {isAdmin && <InviteLinkPanel token={token} onLogout={handleLogout} />}
         {isAdmin && (
           <UserManagementPanel
             token={token}

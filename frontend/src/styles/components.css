@@ -360,3 +360,44 @@
 .auth-card > .alert {
   margin: 0 0 1.25rem;
 }
+
+/* ---------- Invite link card ---------- */
+.invite-result {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.invite-result > label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.invite-result .subtitle {
+  margin: 0;
+}
+
+.invite-link-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.invite-link-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+@media (max-width: 768px) {
+  .invite-link-row {
+    flex-direction: column;
+  }
+}

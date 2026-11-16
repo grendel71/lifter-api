@@ -43,7 +43,7 @@ export function LeaderboardTable({
       {loading && entries.length === 0 ? (
         <p className="empty-state">Loading leaderboard...</p>
       ) : entries.length === 0 ? (
-        <p className="empty-state">No lifters registered yet. Sign up to claim #1!</p>
+        <p className="empty-state">No lifters registered yet.</p>
       ) : (
         <div className="table-wrapper">
           <table className="leaderboard-table">

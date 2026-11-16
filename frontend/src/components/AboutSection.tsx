@@ -17,8 +17,9 @@ export function AboutSection() {
         <div>
           <dt>Your lifts</dt>
           <dd>
-            Create an account or log in, then use the form to change your name
-            and lifts. The table updates at once.
+            Log in, then use the profile page to change your name and lifts. New
+            accounts are created from an invite link sent by an admin. The table
+            updates at once.
           </dd>
         </div>
       </dl>

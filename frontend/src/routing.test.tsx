@@ -117,3 +117,57 @@ describe("routing", () => {
     ).toBeInTheDocument();
   });
 });
+
+function makeInviteJwt(): string {
+  const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  const body = btoa(JSON.stringify({ sub: "admin-id", type: "invite", exp }))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  return `${header}.${body}.sig`;
+}
+
+describe("invite links", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+    mockApi();
+  });
+
+  it("sends /?invite=<token> to the login page with the sign-up form open", async () => {
+    renderAt(`/?invite=${makeInviteJwt()}`);
+
+    expect(await screen.findByLabelText(/display name/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Create your account" })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Sign Up" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("shows login only, with an invite-only note, when there is no invite", async () => {
+    renderAt("/login");
+
+    expect(await screen.findByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Sign Up" })).not.toBeInTheDocument();
+    expect(screen.getByText(/created from an invite link/i)).toBeInTheDocument();
+  });
+
+  it("shows an error for an invite link that is not valid", async () => {
+    renderAt("/?invite=garbage");
+
+    expect(
+      await screen.findByText(
+        "This invite link is not valid or has expired. Ask an admin for a new one."
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Sign Up" })).not.toBeInTheDocument();
+  });
+
+  it("sends a logged-in user who opens an invite link to the profile page", async () => {
+    loginAsCasey();
+    renderAt(`/?invite=${makeInviteJwt()}`);
+
+    expect(await screen.findByLabelText(/display name/i)).toHaveValue("Casey");
+  });
+});

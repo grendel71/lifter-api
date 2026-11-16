@@ -7,6 +7,7 @@ import {
 } from "./api";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
+import { InviteRedirect } from "./components/InviteRedirect";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -65,13 +66,15 @@ export default function App() {
         <Route
           path="/"
           element={
-            <HomePage
-              entries={entries}
-              currentUserId={currentUserId}
-              loading={loading}
-              error={error}
-              onRefresh={() => void loadLeaderboard()}
-            />
+            <InviteRedirect>
+              <HomePage
+                entries={entries}
+                currentUserId={currentUserId}
+                loading={loading}
+                error={error}
+                onRefresh={() => void loadLeaderboard()}
+              />
+            </InviteRedirect>
           }
         />
         <Route

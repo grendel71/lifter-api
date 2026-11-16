@@ -9,6 +9,7 @@ import {
   parseJwtRole,
   parseJwtType,
   parseJwtUserId,
+  registerUser,
 } from "./api";
 import type { LeaderboardEntry } from "./types";
 
@@ -282,5 +283,36 @@ describe("createInviteToken", () => {
     await expect(createInviteToken("t", 500)).rejects.toThrow(
       "Input should be less than or equal to 168"
     );
+  });
+});
+
+describe("registerUser", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("sends the invite token in the request body", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify({ user_id: "u1" }), { status: 201 }));
+    const payload = { name: "Ann", username: "ann", password: "pw", invite_token: "tok" };
+
+    await expect(registerUser(payload)).resolves.toEqual({ user_id: "u1" });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  });
+
+  it("throws a plain Error with the server message when the invite is rejected", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ detail: "Invite link has expired" }), { status: 401 })
+    );
+
+    await expect(
+      registerUser({ name: "Ann", username: "ann", password: "pw", invite_token: "tok" })
+    ).rejects.toThrow("Invite link has expired");
   });
 });

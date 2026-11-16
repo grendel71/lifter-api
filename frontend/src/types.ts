@@ -24,6 +24,7 @@ export interface CreateUserPayload {
   name: string;
   username: string;
   password: string;
+  invite_token: string;
 }
 
 export interface LoginPayload {

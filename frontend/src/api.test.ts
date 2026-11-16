@@ -2,10 +2,12 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   UnauthorizedError,
   buildTop10,
+  createInviteToken,
   deleteUser,
   fetchTop10Leaderboard,
   fetchUsersWithPerformance,
   parseJwtRole,
+  parseJwtType,
   parseJwtUserId,
 } from "./api";
 import type { LeaderboardEntry } from "./types";
@@ -219,5 +221,66 @@ describe("deleteUser", () => {
     );
 
     await expect(deleteUser("user-1", "token-abc")).rejects.toThrow("User not found");
+  });
+});
+
+describe("parseJwtType", () => {
+  it("returns the type claim of a valid token", () => {
+    const exp = Math.floor(Date.now() / 1000) + 3600;
+    expect(parseJwtType(makeFakeJwt({ sub: "u", exp, type: "invite" }))).toBe("invite");
+  });
+
+  it("returns null when the type claim is missing", () => {
+    const exp = Math.floor(Date.now() / 1000) + 3600;
+    expect(parseJwtType(makeFakeJwt({ sub: "u", exp }))).toBeNull();
+  });
+
+  it("returns null when the token is expired", () => {
+    const exp = Math.floor(Date.now() / 1000) - 60;
+    expect(parseJwtType(makeFakeJwt({ sub: "u", exp, type: "invite" }))).toBeNull();
+  });
+
+  it("returns null for a malformed token", () => {
+    expect(parseJwtType("not-a-jwt")).toBeNull();
+  });
+});
+
+describe("createInviteToken", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("POSTs the duration with the Authorization header and returns the invite token", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(JSON.stringify({ invite_token: "inv-123" }), { status: 200 }));
+
+    await expect(createInviteToken("admin-token", 48)).resolves.toBe("inv-123");
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/v1/createInviteToken?duration=48", {
+      method: "POST",
+      headers: { Authorization: "Bearer admin-token" },
+    });
+  });
+
+  it("throws UnauthorizedError on a 401 response", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ detail: "Invalid or expired token" }), { status: 401 })
+    );
+
+    await expect(createInviteToken("bad", 24)).rejects.toBeInstanceOf(UnauthorizedError);
+  });
+
+  it("throws the first validation message on a 422 response", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({ detail: [{ msg: "Input should be less than or equal to 168" }] }),
+        { status: 422 }
+      )
+    );
+
+    await expect(createInviteToken("t", 500)).rejects.toThrow(
+      "Input should be less than or equal to 168"
+    );
   });
 });

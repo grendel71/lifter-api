@@ -1,5 +1,6 @@
 import type {
   CreateUserPayload,
+  InviteTokenResponse,
   LeaderboardEntry,
   LifterResponse,
   LoginPayload,
@@ -14,6 +15,7 @@ interface DecodedJwt {
   sub?: string;
   exp?: number;
   role?: string;
+  type?: string;
 }
 
 function decodeJwtPayload(token: string): DecodedJwt | null {
@@ -46,6 +48,14 @@ export function parseJwtRole(token: string): string | null {
   return payload.role;
 }
 
+export function parseJwtType(token: string): string | null {
+  const payload = decodeJwtPayload(token);
+  if (!payload || typeof payload.type !== "string" || payload.type.length === 0) {
+    return null;
+  }
+  return payload.type;
+}
+
 export function buildTop10(entries: LeaderboardEntry[]): LeaderboardEntry[] {
   return [...entries]
     .sort((a, b) => {
@@ -59,6 +69,10 @@ async function parseErrorDetail(res: Response, fallback: string): Promise<string
   try {
     const body = (await res.json()) as { detail?: unknown };
     if (typeof body.detail === "string") return body.detail;
+    if (Array.isArray(body.detail)) {
+      const first = body.detail[0] as { msg?: unknown } | undefined;
+      if (first && typeof first.msg === "string") return first.msg;
+    }
   } catch {
     // ignore JSON parse error
   }
@@ -184,4 +198,24 @@ export async function deleteUser(userId: string, token: string): Promise<void> {
   if (!res.ok) {
     throw new Error(await parseErrorDetail(res, "Failed to delete user"));
   }
+}
+
+export async function createInviteToken(
+  token: string,
+  durationHours: number
+): Promise<string> {
+  const res = await fetch(`/api/v1/createInviteToken?duration=${durationHours}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (res.status === 401) {
+    throw new UnauthorizedError(await parseErrorDetail(res, "Invalid or expired token"));
+  }
+  if (!res.ok) {
+    throw new Error(await parseErrorDetail(res, "Failed to create invite link"));
+  }
+  const body = (await res.json()) as InviteTokenResponse;
+  return body.invite_token;
 }

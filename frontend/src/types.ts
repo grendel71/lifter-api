@@ -42,3 +42,7 @@ export interface UpdateUserPayload {
   bench?: number;
   deadlift?: number;
 }
+
+export interface InviteTokenResponse {
+  invite_token: string;
+}

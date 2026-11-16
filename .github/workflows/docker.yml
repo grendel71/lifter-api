@@ -25,6 +25,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # One epoch tag per run, shared by api and web, so a deploy pairs them.
+      # Flux image automation needs a tag it can order; sha- tags cannot be ordered.
+      - name: Compute epoch tag
+        id: epoch
+        run: echo "TAG=$(date -u +%s)" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata for api
         id: meta-api
         uses: docker/metadata-action@v5
@@ -32,6 +38,7 @@ jobs:
           images: ${{ env.REGISTRY_HOST }}/lifter-api
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.epoch.outputs.TAG }},enable={{is_default_branch}}
             type=sha,prefix=sha-
 
       - name: Extract metadata for web
@@ -41,6 +48,7 @@ jobs:
           images: ${{ env.REGISTRY_HOST }}/lifter-web
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.epoch.outputs.TAG }},enable={{is_default_branch}}
             type=sha,prefix=sha-
 
       - name: Build and push api

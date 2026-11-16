@@ -27,6 +27,7 @@ services:
       PG_HOST: db
       PG_PORT: "5432"
       PRIVKEY: ${PRIVKEY}
+      MAX_INVITE_HOURS: ${MAX_INVITE_HOURS}
     depends_on:
       db:
         condition: service_healthy

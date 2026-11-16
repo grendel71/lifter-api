@@ -1,9 +1,11 @@
 import asyncio
 import datetime
+import uuid
 
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerifyMismatchError
+from fastapi import HTTPException
 from sqlalchemy import select
 
 from api.leaderboard.config import PRIVKEY
@@ -38,11 +40,46 @@ def create_jwt_token(user_id, role="user"):
         "sub": str(user_id),
         "exp": datetime.datetime.now(datetime.timezone.utc)
         + datetime.timedelta(hours=1),
+        "type": "login",
         "role": role,
+    }
+    return jwt.encode(payload, PRIVKEY, algorithm="HS256")
+
+
+def create_invite_token(admin_id: uuid.UUID, duration_hours: int = 24):
+    payload = {
+        "sub": str(admin_id),
+        "type": "invite",
+        "exp": datetime.datetime.now(datetime.timezone.utc)
+        + datetime.timedelta(hours=int(duration_hours)),
+        "jti": str(uuid.uuid4()),
     }
     return jwt.encode(payload, PRIVKEY, algorithm="HS256")
 
 
 def decode_jwt(token):
     payload = jwt.decode(token, PRIVKEY, algorithms=["HS256"])
+    if payload.get("type") != "login":
+        raise HTTPException(status_code=403, detail="Invalid return type")
     return payload
+
+
+def verify_invite_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(
+            token,
+            PRIVKEY,
+            algorithms=["HS256"],
+            options={"require": ["exp", "sub"]},
+        )
+
+        if payload.get("type") != "invite":
+            raise HTTPException(status_code=403, detail="Invalid token type")
+        return payload
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Invite link has expired")
+    except jwt.InvalidSignatureError:
+        raise HTTPException(status_code=403, detail="Invalid token signature")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=400, detail="Malformed or invalid token")

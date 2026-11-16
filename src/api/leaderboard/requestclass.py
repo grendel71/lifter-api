@@ -10,6 +10,7 @@ class CreateUser(BaseModel):
     name: str
     username: str
     password: str
+    invite_token: str
 
 
 class UserResponse(BaseModel):

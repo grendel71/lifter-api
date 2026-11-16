@@ -2,12 +2,13 @@ import uuid
 from contextlib import asynccontextmanager
 
 import jwt
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 import api.leaderboard.config  # noqa: F401  (validates env vars and builds PG_DSN)
+from api.leaderboard.config import MAX_INVITE_HOURS
 from api.leaderboard.db import Session, init_db
 from api.leaderboard.requestclass import (
     CreateUser,
@@ -21,10 +22,12 @@ from api.leaderboard.schema import Lifter, User
 from api.leaderboard.users import (
     DUMMY_HASH,
     check_user_password,
+    create_invite_token,
     create_jwt_token,
     decode_jwt,
     get_user_by_username,
     hash_user_password,
+    verify_invite_token,
 )
 
 
@@ -81,7 +84,10 @@ async def list_users():
 
 
 @app.post("/api/v1/users", status_code=201)
-async def create_user(payload: CreateUser):
+async def create_user(
+    payload: CreateUser,
+):
+    invite_data = verify_invite_token(payload.invite_token)
     hashed = await hash_user_password(payload.password)
     try:
         async with Session() as session:
@@ -185,3 +191,16 @@ async def login_user(payload: Login):
         userJWT = create_jwt_token(user.id)
 
     return {"access_token": userJWT, "token_type": "bearer"}
+
+
+@app.post("/api/v1/createInviteToken")
+async def create_invite_token_endpoint(
+    duration: int = Query(24, ge=1, le=MAX_INVITE_HOURS),
+    caller: uuid.UUID = Depends(current_user_id),
+    callerRole: str = Depends(current_user_role),
+):
+    if callerRole != "Admin":
+        raise HTTPException(403, "Unauthorized")
+    inviteToken = create_invite_token(caller, duration)
+
+    return {"invite_token": inviteToken}
